@@ -1,0 +1,248 @@
+import java.util.*;
+import javax.swing.*;
+import java.util.*;
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.*;
+import javax.imageio.*;
+import java.lang.*;
+
+public class KBPanel extends JPanel implements MouseMotionListener, MouseListener{
+private static BufferedImage endTurnButtonDisabled;
+private static BufferedImage endTurnButtonEnabled;
+private static BufferedImage useTileButtonDisabled;
+private static BufferedImage useTileButtonEnabled;
+private static BufferedImage board1, board2, board3, board4, board5, board6, board7, board8;
+private BufferedImage[] boards = {board1, board2, board3, board4, board5, board6, board7, board8};
+private ArrayList<Integer> boardsPainted = new ArrayList<Integer>();
+
+private ArrayList<ObjectiveCard> objCardsChosen = new ArrayList<ObjectiveCard>();
+private ArrayList <Polygon> hexCoords = new ArrayList <Polygon>();
+private static ObjectiveCard[] objCards;
+
+
+
+private static int WIDTH = 1600;
+private static int HEIGHT = 960;
+
+
+
+private static BufferedImage background;
+private Button endTurnButton;
+private static BufferedImage pSlot1;
+private static BufferedImage pSlot2;
+private static BufferedImage pSlot3;
+private static BufferedImage pSlot4;
+private boolean turnOver, continueClicked;
+
+public PlayerSlot playerOne = new PlayerSlot(0);
+public PlayerSlot playerTwo = new PlayerSlot(1);
+public PlayerSlot playerThree = new PlayerSlot(2);
+public PlayerSlot playerFour = new PlayerSlot(3);
+
+
+public KBPanel() {
+
+addMouseListener(this);
+addMouseMotionListener(this);
+try {
+boards[0] = ImageIO.read(this.getClass().getResource("/Images/B1.png"));
+boards[1] = ImageIO.read(this.getClass().getResource("/Images/B2.png"));
+boards[2] = ImageIO.read(this.getClass().getResource("/Images/B3.png"));
+boards[3] = ImageIO.read(this.getClass().getResource("/Images/B4.png"));
+boards[4] = ImageIO.read(this.getClass().getResource("/Images/B5.png"));
+boards[5] = ImageIO.read(this.getClass().getResource("/Images/B6.png"));
+boards[6] = ImageIO.read(this.getClass().getResource("/Images/B7.png"));
+boards[7] = ImageIO.read(this.getClass().getResource("/Images/B8.png"));
+
+
+}catch(Exception e) { System.out.println("Can't read images"); }
+
+
+try {
+
+endTurnButtonDisabled = ImageIO.read(this.getClass().getResource("/Images/EndTurnButtonDisabled.png"));
+endTurnButtonEnabled = ImageIO.read(this.getClass().getResource("/Images/EndTurnButtonEnabled.png"));
+useTileButtonDisabled = ImageIO.read(this.getClass().getResource("/Images/UseTileButtonDisabled.png"));
+useTileButtonEnabled = ImageIO.read(this.getClass().getResource("/Images/UseTileButtonEnabled.png"));
+
+
+} catch (Exception e) { System.out.println("Error"); }
+
+try {
+background = ImageIO.read(this.getClass().getResource("/Images/Background.png"));
+pSlot1 =ImageIO.read(this.getClass().getResource("/Images/Player1Slot.png"));
+pSlot2 = ImageIO.read(this.getClass().getResource("/Images/Player2Slot.png"));
+pSlot3 =ImageIO.read(this.getClass().getResource("/Images/Player3Slot.png"));
+pSlot4 = ImageIO.read(this.getClass().getResource("/Images/Player4Slot.png"));
+
+} catch (Exception e) { System.out.println("Can't read player slots and the background"); }
+
+objCards = new ObjectiveCard[10];
+try {
+	objCards[0] = new ObjectiveCard("Citizen", ImageIO.read(this.getClass().getResource("/Images/CitizenCard.png")));
+	objCards[1] = new ObjectiveCard("Discoverer", ImageIO.read(this.getClass().getResource("/Images/DiscovererCard.png")));
+	objCards[2] = new ObjectiveCard("Farmer", ImageIO.read(this.getClass().getResource("/Images/FarmerCard.png")));
+	objCards[3] = new ObjectiveCard("Fishermen", ImageIO.read(this.getClass().getResource("/Images/FishermenCard.png")));
+	objCards[4] = new ObjectiveCard("Hermit", ImageIO.read(this.getClass().getResource("/Images/HermitCard.png")));
+	objCards[5] = new ObjectiveCard("Knight", ImageIO.read(this.getClass().getResource("/Images/KnightCard.png")));
+	objCards[6] = new ObjectiveCard("Lord", ImageIO.read(this.getClass().getResource("/Images/LordCard.png")));
+	objCards[7] = new ObjectiveCard("Merchant", ImageIO.read(this.getClass().getResource("/Images/MerchantCard.png")));
+	objCards[8] = new ObjectiveCard("Miner", ImageIO.read(this.getClass().getResource("/Images/MinerCard.png")));
+	objCards[9] = new ObjectiveCard("Worker", ImageIO.read(this.getClass().getResource("/Images/WorkerCard.png")));
+
+} catch(Exception e) {System.out.println("Can't read objective cards");}
+
+
+//button
+
+endTurnButton = new Button(endTurnButtonDisabled, endTurnButtonEnabled);
+
+endTurnButton.setCenterCoords(571, 870);
+
+endTurnButton.setWidth(200);
+
+endTurnButton.setHeight(70);
+
+endTurnButton.setEnabled(true);
+
+
+pickObjCards();
+
+randomizeBoards();
+repaint();
+
+}
+
+public void randomizeBoards() {
+int ind = 0;
+
+while(boardsPainted.size() <= 4) {
+ind = (int)((Math.random()*7)+1);
+
+if(!(boardsPainted.contains(ind)))
+boardsPainted.add(ind);
+}
+}
+
+public void pickObjCards() {
+	int ind = 0;
+
+	while(objCardsChosen.size() <= 3) {
+		ind = (int)((Math.random()*9)+1);
+
+		if(!(objCardsChosen.contains(objCards[ind])))
+			objCardsChosen.add(objCards[ind]);
+	}
+} 
+
+public void getHexCoords() {
+	int[]x = new int[6], y = new int[6];
+	for(int i= 0; i < 20; i++) {
+		for(int j = 0; j < 20; j++) {
+			x[0] = 403 + j*40 + (i%2 * 20);
+			x[1] = 423 + j*40 + (i%2 * 20);
+			x[2] = 443 + j*40 + (i%2 * 20);
+			x[3] = 443 + j*40 + (i%2 * 20);
+			x[4] = 423 + j*40 + (i%2 * 20);
+			x[5] = 403 + j*40 + (i%2 * 20);
+			
+			y[0] = 165 + i*35;
+			y[1] = 155 + i*35;
+			y[2] = 165 + i*35;
+			y[3] = 189 + i*35;
+			y[4] = 200 + i*35;
+			y[5] = 189 + i*35;
+			
+			hexCoords.add(new Polygon(x, y, 6 ));
+		}
+		
+	}
+}
+
+
+public void paint(Graphics g) {
+
+g.drawImage(background, 0, 0, 2000, 1500, null);
+g.drawImage(pSlot1, 44, 98, 312, 238, null);
+g.drawImage(pSlot2, 44, 587, 312, 238, null);
+g.drawImage(pSlot3, 1255, 98, 312, 238, null);
+g.drawImage(pSlot4, 1255, 587, 312, 238, null);
+
+g.drawImage(boards[boardsPainted.get(0)], 370, 120, 942, 567, null);
+g.drawImage(boards[boardsPainted.get(1)], 770, 120, 942, 567, null);
+g.drawImage(boards[boardsPainted.get(2)], 370, 470, 942, 567, null);
+g.drawImage(boards[boardsPainted.get(3)], 770, 470, 942, 567, null);
+//draw player slots
+
+playerOne.display(g);
+playerTwo.display(g);
+playerThree.display(g);
+playerFour.display(g);
+
+g.setColor(Color.WHITE);
+g.setFont(new Font("Times New Roman", Font.PLAIN, 23));
+
+g.drawString("Count: " + playerOne.getCount(), 78, 310);
+g.drawString("Count: " + playerTwo.getCount(), 78, 801);
+g.drawString("Count: " + playerThree.getCount(),1429 , 310);
+g.drawString("Count: " + playerFour.getCount(), 1429, 801);
+
+//draw player slots
+
+g.drawImage(objCardsChosen.get(0).display(), 10, 350, 130, 200, null);
+g.drawImage(objCardsChosen.get(1).display(), 135, 350, 130, 200, null);
+g.drawImage(objCardsChosen.get(2).display(), 265, 350, 130, 200, null);
+
+
+//testing hex coords
+getHexCoords();
+g.setColor(Color.RED);
+for(int i = 0; i < hexCoords.size(); i++) {
+	g.drawPolygon((hexCoords.get(i)).xpoints, (hexCoords.get(i)).ypoints, 6);
+
+}
+
+
+
+paintEndTurnButton(g);
+
+}
+
+public void paintEndTurnButton(Graphics g) {
+
+endTurnButton.display(g);
+
+}
+
+public void mouseClicked(MouseEvent e) {
+
+}
+public void mousePressed(MouseEvent e) {
+int x = e.getX(), y = e.getY();
+System.out.println("Clicked Button");
+clickButton(x, y);
+
+}
+public void mouseReleased(MouseEvent e) { }
+public void mouseEntered(MouseEvent e) { }
+public void mouseExited(MouseEvent e) { }
+public void mouseDragged(MouseEvent e) { }
+public void mouseMoved(MouseEvent e) { }
+
+public void clickButton(int x, int y) {
+
+        if (endTurnButton.isClicked(x, y)) {
+            endTurnButton.setEnabled(false);
+            turnOver = true;
+            continueClicked = true;
+
+            paintEndTurnButton(getGraphics());
+            repaint();
+        }
+    }
+
+
+}
+
